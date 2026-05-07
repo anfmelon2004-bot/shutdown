@@ -1,0 +1,31 @@
+open new terminal
+
+한개만 수정할 때
+
+git add app/login/파일명.tsx
+git commit -m "수정 내용"
+git push
+
+여러개 수정할 때
+
+git add app/login/파일명.tsx app/free/파일명.tsx
+git commit -m "수정 내용"
+git push
+
+수정 취소
+
+git restore --staged app/login/page.tsx
+
+새로운 파일을 업로드
+
+git add app/profile/page.tsx
+git commit -m "프로필 페이지 추가"
+git push
+
+새로운 폴더째로 업로드
+
+git add app/chat
+
+전체 업로드
+
+git add .
