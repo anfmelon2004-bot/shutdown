@@ -2,7 +2,15 @@
 
 // 로그인 화면과 회원가입 모달 UI를 담당하는 클라이언트 컴포넌트입니다.
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
+import {
+  authStorageKey,
+  nicknameStorageKey,
+  userProfileStorageKey,
+} from "./auth-link";
+
+const nicknameByEmailStorageKey = "campus-board-nickname-by-email";
 
 // 로그인 페이지와 회원가입 모달에서 쓰는 모든 문구를 모아둡니다.
 // 폼 구조와 문구를 분리해두면 화면 문구 수정이 훨씬 단순해집니다.
@@ -32,23 +40,76 @@ const text = {
 };
 
 export default function Login() {
+  const router = useRouter();
   // 회원가입 버튼을 눌렀을 때 모달을 열고, 닫기 버튼을 누르면 다시 숨깁니다.
   const [isSignupOpen, setIsSignupOpen] = useState(false);
+
+  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const userId = email.split("@")[0] || "campus-user";
+    const savedNicknames = JSON.parse(
+      window.localStorage.getItem(nicknameByEmailStorageKey) ?? "{}",
+    ) as Record<string, string>;
+    const nickname = savedNicknames[email] || `${userId}님`;
+
+    window.localStorage.setItem(authStorageKey, userId);
+    window.localStorage.setItem(nicknameStorageKey, nickname);
+    router.push("/");
+  };
+
+  const handleSignup = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+    const nickname = String(formData.get("nickname") ?? "").trim();
+    const email = String(formData.get("signupEmail") ?? "").trim();
+    const major = String(formData.get("major") ?? "").trim();
+    const userId = email.split("@")[0] || "campus-user";
+    const savedNicknames = JSON.parse(
+      window.localStorage.getItem(nicknameByEmailStorageKey) ?? "{}",
+    ) as Record<string, string>;
+
+    window.localStorage.setItem(
+      nicknameByEmailStorageKey,
+      JSON.stringify({
+        ...savedNicknames,
+        [email]: nickname,
+      }),
+    );
+    window.localStorage.setItem(authStorageKey, userId);
+    window.localStorage.setItem(nicknameStorageKey, nickname);
+    window.localStorage.setItem(
+      userProfileStorageKey,
+      JSON.stringify({
+        email,
+        major,
+        nickname,
+        userId,
+      }),
+    );
+    router.push("/");
+  };
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5f5f5] px-4 py-10 text-[#222222]">
       <section className="w-full max-w-[420px]">
         {/* 로그인 카드 위쪽의 로고와 안내 문구 영역입니다. */}
         <div className="mb-7 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-[#c62917] text-2xl font-black text-white">
+          <Link className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-[#c62917] text-2xl font-black !text-white" href="/">
             L
-          </div>
+          </Link>
           <h1 className="text-2xl font-bold">{text.title}</h1>
           <p className="mt-2 text-sm text-[#777777]">{text.subtitle}</p>
         </div>
 
         {/* 실제 서버 로그인 처리는 아직 연결되어 있지 않고, 현재는 입력 폼 UI만 구성되어 있습니다. */}
-        <form className="rounded-md border border-[#dedede] bg-white p-5 shadow-sm">
+        <form
+          className="rounded-md border border-[#dedede] bg-white p-5 shadow-sm"
+          onSubmit={handleLogin}
+        >
           <div className="space-y-4">
             {/* 이메일 입력칸입니다. type=email을 사용해서 브라우저 기본 이메일 검사를 활용합니다. */}
             <label className="block">
@@ -59,6 +120,7 @@ export default function Login() {
                 className="h-12 w-full rounded-md border border-[#d9d9d9] bg-white px-3 text-sm outline-none transition placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
                 name="email"
                 placeholder={text.emailPlaceholder}
+                required
                 type="email"
               />
             </label>
@@ -72,6 +134,7 @@ export default function Login() {
                 className="h-12 w-full rounded-md border border-[#d9d9d9] bg-white px-3 text-sm outline-none transition placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
                 name="password"
                 placeholder={text.passwordPlaceholder}
+                required
                 type="password"
               />
             </label>
@@ -134,7 +197,7 @@ export default function Login() {
             </div>
 
             {/* 회원가입에 필요한 기본 입력값을 받는 폼입니다. 아직 제출 로직은 연결되어 있지 않습니다. */}
-            <form className="mt-5 space-y-4">
+            <form className="mt-5 space-y-4" onSubmit={handleSignup}>
               {/* 사용자가 게시판에서 보일 닉네임을 입력합니다. */}
               <label className="block">
                 <span className="mb-2 block text-sm font-semibold">
@@ -144,6 +207,7 @@ export default function Login() {
                   className="h-12 w-full rounded-md border border-[#d9d9d9] px-3 text-sm outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
                   name="nickname"
                   placeholder={text.namePlaceholder}
+                  required
                   type="text"
                 />
               </label>
@@ -157,6 +221,7 @@ export default function Login() {
                   className="h-12 w-full rounded-md border border-[#d9d9d9] px-3 text-sm outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
                   name="signupEmail"
                   placeholder={text.emailPlaceholder}
+                  required
                   type="email"
                 />
               </label>
@@ -170,6 +235,7 @@ export default function Login() {
                   className="h-12 w-full rounded-md border border-[#d9d9d9] px-3 text-sm outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
                   name="major"
                   placeholder={text.majorPlaceholder}
+                  required
                   type="text"
                 />
               </label>
@@ -184,6 +250,7 @@ export default function Login() {
                     className="h-12 w-full rounded-md border border-[#d9d9d9] px-3 text-sm outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
                     name="signupPassword"
                     placeholder={text.password}
+                    required
                     type="password"
                   />
                 </label>
@@ -196,6 +263,7 @@ export default function Login() {
                     className="h-12 w-full rounded-md border border-[#d9d9d9] px-3 text-sm outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
                     name="confirmPassword"
                     placeholder={text.confirmPassword}
+                    required
                     type="password"
                   />
                 </label>

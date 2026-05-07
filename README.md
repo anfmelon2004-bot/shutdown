@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+
+머리카락 실시간으로 빠지는 중
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

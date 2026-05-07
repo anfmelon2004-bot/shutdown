@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import BidPanel from "../../bid-panel";
 import { allPosts } from "../../community-data";
 
 // 게시글 id에 맞는 상세 내용을 보여주는 동적 상세 페이지입니다.
@@ -114,28 +115,15 @@ export default async function PostPage({ params }: PostPageProps) {
 
           {/* 족보경매장 글일 때만 현재가, 입찰수, 마감 시간, 입찰 버튼을 보여줍니다. */}
           {post.currentBid ? (
-            <div className="grid gap-3 rounded-md border border-[#eeeeee] bg-[#fafafa] p-4 sm:grid-cols-[1fr_1fr_1fr_auto]">
-              <div>
-                <p className="text-xs text-[#888888]">{text.currentBid}</p>
-                <p className="mt-1 font-black text-[#c62917]">
-                  {post.currentBid}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-[#888888]">{text.bids}</p>
-                <p className="mt-1 font-bold">{post.bids}</p>
-              </div>
-              <div>
-                <p className="text-xs text-[#888888]">{text.endsIn}</p>
-                <p className="mt-1 font-bold text-[#c62917]">{post.endsIn}</p>
-              </div>
-              <button
-                className="h-11 rounded-md bg-[#c62917] px-4 text-sm font-bold text-white transition hover:bg-[#ae2112]"
-                type="button"
-              >
-                {text.bid}
-              </button>
-            </div>
+            <BidPanel
+              bidLabel={text.bid}
+              bidsLabel={text.bids}
+              currentBid={post.currentBid}
+              currentBidLabel={text.currentBid}
+              endsIn={post.endsIn ?? ""}
+              endsInLabel={text.endsIn}
+              initialBids={post.bids}
+            />
           ) : null}
 
           {/* 본문 하단에는 좋아요와 댓글 수를 간단한 통계처럼 표시합니다. */}

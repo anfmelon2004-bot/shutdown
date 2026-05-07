@@ -3,6 +3,7 @@
 // 각 게시판 페이지에서 공통으로 사용하는 목록, 검색, 추천 랭킹 UI입니다.
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import AuthLink from "./auth-link";
 import {
   allPosts,
   boards,
@@ -49,6 +50,14 @@ const ui = {
   openPost: "게시글 열기",
 };
 
+// 게시판별 글쓰기 페이지 경로입니다.
+const writeHrefByBoard: Partial<Record<BoardKey, string>> = {
+  free: "/write/free",
+  market: "/write/market",
+  examAuction: "/write/exam-auction",
+  reviews: "/write/reviews",
+};
+
 export default function CommunityBoard({
   activeBoard,
   title,
@@ -56,6 +65,10 @@ export default function CommunityBoard({
   posts,
   description,
 }: CommunityBoardProps) {
+  // 현재 게시판에 연결된 글쓰기 페이지가 있으면 버튼을 링크로 보여줍니다.
+  // 값이 없는 게시판이 생기면 버튼을 숨길 수 있게 선택형 매핑으로 둡니다.
+  const writeHref = writeHrefByBoard[activeBoard];
+
   // 추천 버튼을 누른 결과는 서버에 저장하지 않고 현재 화면 상태로만 관리합니다.
   // 초기값은 모든 게시글의 authorRecommendations 값을 post.id 기준으로 바꾼 객체입니다.
   const [recommendations, setRecommendations] = useState(() =>
@@ -92,7 +105,7 @@ export default function CommunityBoard({
       <header className="sticky top-0 z-10 border-b border-[#e2e2e2] bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link className="flex items-center gap-3" href="/">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#c62917] text-lg font-black text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#c62917] text-lg font-black !text-white">
               L
             </div>
             <div>
@@ -102,12 +115,7 @@ export default function CommunityBoard({
               <p className="text-xs text-[#777777]">{ui.siteSubtitle}</p>
             </div>
           </Link>
-          <Link
-            className="rounded-md bg-[#c62917] px-4 py-2 text-sm font-semibold !text-white shadow-sm transition hover:bg-[#ae2112]"
-            href="/login"
-          >
-            {ui.login}
-          </Link>
+          <AuthLink loginLabel={ui.login} />
         </div>
       </header>
 
@@ -155,13 +163,39 @@ export default function CommunityBoard({
                   placeholder={ui.searchPlaceholder}
                 />
               </div>
-              <Link
-                className="shrink-0 rounded-md bg-[#c62917] px-4 py-2 text-sm font-bold !text-white shadow-sm transition hover:bg-[#ae2112]"
-                href="/write"
-              >
-                {ui.write}
-              </Link>
+              {writeHref ? (
+                <Link
+                  className="shrink-0 rounded-md bg-[#c62917] px-4 py-2 text-sm font-bold !text-white shadow-sm transition hover:bg-[#ae2112]"
+                  href={writeHref}
+                >
+                  {ui.write}
+                </Link>
+              ) : null}
             </div>
+            {activeBoard === "reviews" ? (
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <label className="flex min-w-0 items-center gap-2 rounded-md border border-[#dedede] bg-[#fafafa] px-3 py-2">
+                  <span className="shrink-0 text-sm text-[#999999]">
+                    강의명
+                  </span>
+                  <input
+                    aria-label="강의명 검색"
+                    className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#aaaaaa]"
+                    placeholder="강의명을 검색하세요"
+                  />
+                </label>
+                <label className="flex min-w-0 items-center gap-2 rounded-md border border-[#dedede] bg-[#fafafa] px-3 py-2">
+                  <span className="shrink-0 text-sm text-[#999999]">
+                    교수명
+                  </span>
+                  <input
+                    aria-label="교수명 검색"
+                    className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#aaaaaa]"
+                    placeholder="교수명을 검색하세요"
+                  />
+                </label>
+              </div>
+            ) : null}
             {/* 모바일에서는 왼쪽 사이드바가 숨겨지므로 가로 스크롤 게시판 메뉴를 대신 보여줍니다. */}
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:hidden">
               {boards.map((board) => (

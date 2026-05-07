@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AuthLink from "./auth-link";
 import {
   allPosts,
   examAuctionPosts,
@@ -105,7 +106,7 @@ export default function Home() {
       <header className="border-b border-[#e2e2e2] bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link className="flex items-center gap-3" href="/">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#c62917] text-lg font-black text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#c62917] text-lg font-black !text-white">
               L
             </div>
             <div>
@@ -115,12 +116,7 @@ export default function Home() {
               <p className="text-xs text-[#777777]">{text.siteSubtitle}</p>
             </div>
           </Link>
-          <Link
-            className="rounded-md bg-[#c62917] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ae2112]"
-            href="/login"
-          >
-            {text.login}
-          </Link>
+          <AuthLink loginLabel={text.login} />
         </div>
       </header>
 
