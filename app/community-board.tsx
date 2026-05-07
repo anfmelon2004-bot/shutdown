@@ -19,25 +19,26 @@ type CommunityBoardProps = {
 };
 
 const ui = {
-  siteTitle: "\uCEA0\uD37C\uC2A4 \uAC8C\uC2DC\uD310",
+  siteTitle: "캠퍼스 게시판",
   siteSubtitle:
-    "\uC6B0\uB9AC \uD559\uAD50 \uC2E4\uC2DC\uAC04 \uCEE4\uBBA4\uB2C8\uD2F0",
-  login: "\uB85C\uADF8\uC778",
-  search: "\uAC80\uC0C9",
-  searchLabel: "\uAC8C\uC2DC\uAE00 \uAC80\uC0C9",
+    "우리 학교 실시간 커뮤니티",
+  login: "로그인",
+  search: "검색",
+  searchLabel: "게시글 검색",
   searchPlaceholder:
-    "\uAD81\uAE08\uD55C \uAE00\uC744 \uCC3E\uC544\uBCF4\uC138\uC694",
-  rating: "\uD3C9\uC810",
-  price: "\uAC00\uACA9",
-  currentBid: "\uD604\uC7AC\uAC00",
-  likes: "\uC88B\uC544\uC694",
-  comments: "\uB313\uAE00",
-  buy: "\uAD6C\uB9E4",
-  bids: "\uC785\uCC30",
-  recommend: "\uCD94\uCC9C",
-  ranking: "\uCD94\uCC9C \uB7AD\uD0B9",
-  viewed: "\uB9CE\uC774 \uBCF8 \uAE00",
-  openPost: "\uAC8C\uC2DC\uAE00 \uC5F4\uAE30",
+    "궁금한 글을 찾아보세요",
+  write: "글쓰기",
+  rating: "평점",
+  price: "가격",
+  currentBid: "현재가",
+  likes: "좋아요",
+  comments: "댓글",
+  buy: "구매",
+  bids: "입찰",
+  recommend: "추천",
+  ranking: "추천 랭킹",
+  viewed: "많이 본 글",
+  openPost: "게시글 열기",
 };
 
 export default function CommunityBoard({
@@ -125,13 +126,21 @@ export default function CommunityBoard({
 
         <section className="space-y-4">
           <div className="rounded-md border border-[#dedede] bg-white p-3">
-            <div className="flex items-center gap-2 rounded-md border border-[#dedede] bg-[#fafafa] px-3 py-2">
-              <span className="text-sm text-[#999999]">{ui.search}</span>
-              <input
-                aria-label={ui.searchLabel}
-                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#aaaaaa]"
-                placeholder={ui.searchPlaceholder}
-              />
+            <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-1 items-center gap-2 rounded-md border border-[#dedede] bg-[#fafafa] px-3 py-2">
+                <span className="text-sm text-[#999999]">{ui.search}</span>
+                <input
+                  aria-label={ui.searchLabel}
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#aaaaaa]"
+                  placeholder={ui.searchPlaceholder}
+                />
+              </div>
+              <Link
+                className="shrink-0 rounded-md bg-[#c62917] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#ae2112]"
+                href="/write"
+              >
+                {ui.write}
+              </Link>
             </div>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1 lg:hidden">
               {boards.map((board) => (

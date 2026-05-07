@@ -9,17 +9,17 @@ import {
 } from "./community-data";
 
 const text = {
-  siteTitle: "\uCEA0\uD37C\uC2A4 \uAC8C\uC2DC\uD310",
+  siteTitle: "캠퍼스 게시판",
   siteSubtitle:
-    "\uAC8C\uC2DC\uD310\uBCC4 \uCD5C\uC2E0\uAE00\uC744 \uBE60\uB974\uAC8C \uD655\uC778\uD558\uC138\uC694",
-  login: "\uB85C\uADF8\uC778",
-  ranking: "\uCD94\uCC9C \uB7AD\uD0B9",
-  recommend: "\uCD94\uCC9C",
-  boardList: "\uAC8C\uC2DC\uD310 \uBAA9\uB85D",
-  free: "\uC790\uC720\uAC8C\uC2DC\uD310",
-  market: "\uC7A5\uD130\uAC8C\uC2DC\uD310",
-  examAuction: "\uC871\uBCF4\uACBD\uB9E4\uC7A5",
-  reviews: "\uAC15\uC758\uD3C9\uAC8C\uC2DC\uD310",
+    "게시판별 최신글을 빠르게 확인하세요",
+  login: "로그인",
+  ranking: "추천 랭킹",
+  recommend: "추천",
+  boardList: "게시판 목록",
+  free: "자유게시판",
+  market: "장터게시판",
+  examAuction: "족보경매장",
+  reviews: "강의평게시판",
 };
 
 const boardSections = [

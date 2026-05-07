@@ -4,28 +4,28 @@ import Link from "next/link";
 import { useState } from "react";
 
 const text = {
-  title: "\uCEA0\uD37C\uC2A4 \uAC8C\uC2DC\uD310 \uB85C\uADF8\uC778",
+  title: "캠퍼스 게시판 로그인",
   subtitle:
-    "\uD559\uAD50 \uACC4\uC815\uC73C\uB85C \uCEE4\uBBA4\uB2C8\uD2F0\uC5D0 \uCC38\uC5EC\uD558\uC138\uC694",
-  email: "\uC774\uBA54\uC77C",
+    "학교 계정으로 커뮤니티에 참여하세요",
+  email: "이메일",
   emailPlaceholder: "school@example.co.kr",
-  password: "\uBE44\uBC00\uBC88\uD638",
+  password: "비밀번호",
   passwordPlaceholder:
-    "\uBE44\uBC00\uBC88\uD638\uB97C \uC785\uB825\uD558\uC138\uC694",
-  submit: "\uB85C\uADF8\uC778",
-  noAccount: "\uC544\uC9C1 \uACC4\uC815\uC774 \uC5C6\uB098\uC694?",
-  signup: "\uD68C\uC6D0\uAC00\uC785",
-  back: "\uAC8C\uC2DC\uD310\uC73C\uB85C \uB3CC\uC544\uAC00\uAE30",
-  modalTitle: "\uD68C\uC6D0\uAC00\uC785",
+    "비밀번호를 입력하세요",
+  submit: "로그인",
+  noAccount: "아직 계정이 없나요?",
+  signup: "회원가입",
+  back: "게시판으로 돌아가기",
+  modalTitle: "회원가입",
   modalSubtitle:
-    "\uD559\uAD50 \uC774\uBA54\uC77C\uACFC \uB2C9\uB124\uC784\uC73C\uB85C \uC2DC\uC791\uD574\uBCF4\uC138\uC694",
-  name: "\uB2C9\uB124\uC784",
-  namePlaceholder: "\uC608: \uCEF4\uACF5\uC0C8\uB0B4\uAE30",
-  confirmPassword: "\uBE44\uBC00\uBC88\uD638 \uD655\uC778",
-  major: "\uD559\uACFC",
-  majorPlaceholder: "\uC608: \uCEF4\uD4E8\uD130\uACF5\uD559\uACFC",
-  createAccount: "\uACC4\uC815 \uB9CC\uB4E4\uAE30",
-  close: "\uB2EB\uAE30",
+    "학교 이메일과 닉네임으로 시작해보세요",
+  name: "닉네임",
+  namePlaceholder: "예: 컴공새내기",
+  confirmPassword: "비밀번호 확인",
+  major: "학과",
+  majorPlaceholder: "예: 컴퓨터공학과",
+  createAccount: "계정 만들기",
+  close: "닫기",
 };
 
 export default function Login() {

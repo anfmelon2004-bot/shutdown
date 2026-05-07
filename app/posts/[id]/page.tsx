@@ -9,20 +9,20 @@ type PostPageProps = {
 };
 
 const text = {
-  back: "\uBAA9\uB85D\uC73C\uB85C \uB3CC\uC544\uAC00\uAE30",
-  likes: "\uC88B\uC544\uC694",
-  comments: "\uB313\uAE00",
-  author: "\uC791\uC131\uC790",
-  recommend: "\uCD94\uCC9C\uC218",
-  price: "\uAC00\uACA9",
-  status: "\uC0C1\uD0DC",
-  buy: "\uAD6C\uB9E4\uD558\uAE30",
-  currentBid: "\uD604\uC7AC\uAC00",
-  bids: "\uC785\uCC30\uC218",
-  endsIn: "\uB9C8\uAC10",
-  bid: "\uC785\uCC30\uD558\uAE30",
-  rating: "\uD3C9\uC810",
-  professor: "\uAD50\uC218",
+  back: "목록으로 돌아가기",
+  likes: "좋아요",
+  comments: "댓글",
+  author: "작성자",
+  recommend: "추천수",
+  price: "가격",
+  status: "상태",
+  buy: "구매하기",
+  currentBid: "현재가",
+  bids: "입찰수",
+  endsIn: "마감",
+  bid: "입찰하기",
+  rating: "평점",
+  professor: "교수",
 };
 
 export function generateStaticParams() {
@@ -137,11 +137,11 @@ export default async function PostPage({ params }: PostPageProps) {
         <Link
           className="inline-flex rounded-md border border-[#dedede] bg-white px-4 py-2 text-sm font-bold text-[#555555] hover:bg-[#fafafa]"
           href={
-            post.board === "\uC790\uC720\uAC8C\uC2DC\uD310"
+            post.board === "자유게시판"
               ? "/free"
-              : post.board === "\uC7A5\uD130\uAC8C\uC2DC\uD310"
+              : post.board === "장터게시판"
                 ? "/market"
-                : post.board === "\uC871\uBCF4\uACBD\uB9E4\uC7A5"
+                : post.board === "족보경매장"
                   ? "/exam-auction"
                   : "/reviews"
           }
