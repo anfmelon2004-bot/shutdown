@@ -31,6 +31,7 @@ git commit -m "수정 내용"
 git push
 ```
 ## Compare with git (안되믄 git 부터 깔고 오세요)
+## (저장도 안한 상태로 git에 안올라간다고 30분동안 뻘짓한 나)
 git status
 ```
 동일할 시
