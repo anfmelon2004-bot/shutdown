@@ -1,11 +1,11 @@
 import Link from "next/link";
 import AuthLink from "./auth-link";
 import {
-  allPosts,
+  basePosts,
   examAuctionPosts,
   freePosts,
+  groupedReviewPosts,
   marketPosts,
-  reviewPosts,
   type CommunityPost,
 } from "./community-data";
 
@@ -46,13 +46,13 @@ const boardSections = [
   {
     title: text.reviews,
     href: "/reviews",
-    posts: reviewPosts,
+    posts: groupedReviewPosts,
   },
 ];
 
 // 전체 게시글 중 작성자 추천수가 높은 글 3개를 골라 오른쪽 랭킹 영역에 보여줍니다.
 // 원본 allPosts 배열을 직접 정렬하면 다른 화면에도 영향이 갈 수 있어 복사본([...allPosts])을 사용합니다.
-const ranking = [...allPosts]
+const ranking = [...basePosts]
   .sort(
     (first, second) =>
       second.authorRecommendations - first.authorRecommendations,

@@ -2,28 +2,47 @@
 
 // 각 게시판 페이지에서 공통으로 사용하는 목록, 검색, 추천 랭킹 UI입니다.
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import AuthLink from "./auth-link";
 import {
-  allPosts,
+  basePosts,
   boards,
+  createReviewPostFromStoredReview,
+  groupReviewPosts,
+  reviewPosts,
   trending,
   type BoardKey,
   type CommunityPost,
+  type StoredReviewPost,
 } from "./community-data";
+import {
+  localStorageChangedEvent,
+  safeJsonParse,
+  submittedReviewsStorageKey,
+} from "./storage";
 
 type CommunityBoardProps = {
   // 현재 열려 있는 게시판을 표시하기 위한 키입니다.
   activeBoard: BoardKey;
   // 게시판 본문 상단에 표시되는 제목입니다.
   title: string;
-  // 제목 오른쪽에 붙는 짧은 상태 문구입니다. 예: 최신순, 경매중
-  eyebrow: string;
   // 이 화면에 실제로 나열할 게시글 목록입니다.
   posts: CommunityPost[];
   // 게시판 설명은 없는 페이지도 있을 수 있어서 선택값으로 둡니다.
   description?: string;
 };
+
+type SortMode = "latest" | "popular" | "closingSoon";
+
+const sortOptions: Array<{ label: string; value: SortMode }> = [
+  { label: "최신순", value: "latest" },
+  { label: "인기순", value: "popular" },
+];
+
+const examAuctionSortOptions: Array<{ label: string; value: SortMode }> = [
+  ...sortOptions,
+  { label: "마감 임박", value: "closingSoon" },
+];
 
 // 공용 게시판 컴포넌트에서 쓰는 화면 문구입니다.
 // 여러 곳에 문자열을 직접 쓰지 않고 ui 객체에서 꺼내 쓰면 수정 지점이 줄어듭니다.
@@ -61,20 +80,144 @@ const writeHrefByBoard: Partial<Record<BoardKey, string>> = {
 const lockedAuctionMessage =
   "낙찰된 사용자만 게시물 내용을 확인할 수 있습니다.";
 
+const recentPopularityWindowMs = 30 * 24 * 60 * 60 * 1000;
+const closingSoonWindowMs = 60 * 60 * 1000;
+
+const getCreatedAtTime = (post: CommunityPost) =>
+  new Date(post.createdAt).getTime();
+
+const getEndsAtTime = (post: CommunityPost) =>
+  post.endsAt ? new Date(post.endsAt).getTime() : Number.POSITIVE_INFINITY;
+
+function subscribeToStoredReviews(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(localStorageChangedEvent, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(localStorageChangedEvent, onStoreChange);
+  };
+}
+
+function getStoredReviewsSnapshot() {
+  return window.localStorage.getItem(submittedReviewsStorageKey) ?? "[]";
+}
+
+function getServerStoredReviewsSnapshot() {
+  return "[]";
+}
+
+function includesText(value: string | undefined, query: string) {
+  return value?.toLowerCase().includes(query) ?? false;
+}
+
 export default function CommunityBoard({
   activeBoard,
   title,
-  eyebrow,
   posts,
   description,
 }: CommunityBoardProps) {
   // 현재 게시판에 연결된 글쓰기 페이지가 있으면 버튼을 링크로 보여줍니다.
   // 값이 없는 게시판이 생기면 버튼을 숨길 수 있게 선택형 매핑으로 둡니다.
   const writeHref = writeHrefByBoard[activeBoard];
+  const [sortMode, setSortMode] = useState<SortMode>("latest");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [courseQuery, setCourseQuery] = useState("");
+  const [professorQuery, setProfessorQuery] = useState("");
+  const storedReviewsSnapshot = useSyncExternalStore(
+    subscribeToStoredReviews,
+    getStoredReviewsSnapshot,
+    getServerStoredReviewsSnapshot,
+  );
+  const canSortPosts = activeBoard !== "reviews";
+  const visibleSortOptions =
+    activeBoard === "examAuction" ? examAuctionSortOptions : sortOptions;
+  const displayPosts = useMemo(() => {
+    if (activeBoard !== "reviews") {
+      return posts;
+    }
 
-  // 오른쪽 추천 랭킹은 더미 데이터의 추천수를 기준으로 계산합니다.
+    const storedReviews = safeJsonParse<StoredReviewPost[]>(
+      storedReviewsSnapshot,
+      [],
+    ).map(createReviewPostFromStoredReview);
+
+    return groupReviewPosts([...reviewPosts, ...storedReviews]);
+  }, [activeBoard, posts, storedReviewsSnapshot]);
+
+  const filteredPosts = useMemo(() => {
+    const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+    const normalizedCourseQuery = courseQuery.trim().toLowerCase();
+    const normalizedProfessorQuery = professorQuery.trim().toLowerCase();
+
+    return displayPosts.filter((post) => {
+      const matchesSearch =
+        !normalizedSearchQuery ||
+        includesText(post.title, normalizedSearchQuery) ||
+        includesText(post.preview, normalizedSearchQuery) ||
+        includesText(post.board, normalizedSearchQuery) ||
+        includesText(post.professor, normalizedSearchQuery);
+      const matchesCourse =
+        activeBoard !== "reviews" ||
+        !normalizedCourseQuery ||
+        includesText(post.courseName ?? post.title, normalizedCourseQuery);
+      const matchesProfessor =
+        activeBoard !== "reviews" ||
+        !normalizedProfessorQuery ||
+        includesText(post.professor, normalizedProfessorQuery);
+
+      return matchesSearch && matchesCourse && matchesProfessor;
+    });
+  }, [
+    activeBoard,
+    courseQuery,
+    displayPosts,
+    professorQuery,
+    searchQuery,
+  ]);
+
+  const sortedPosts = useMemo(() => {
+    if (!canSortPosts) {
+      return filteredPosts;
+    }
+
+    const newestPostTime = Math.max(...filteredPosts.map(getCreatedAtTime));
+    const postsInRecentWindow = filteredPosts.filter(
+      (post) =>
+        newestPostTime - getCreatedAtTime(post) <= recentPopularityWindowMs,
+    );
+    const closingSoonPosts = filteredPosts.filter((post) => {
+      const remainingTime = getEndsAtTime(post) - newestPostTime;
+
+      return remainingTime > 0 && remainingTime < closingSoonWindowMs;
+    });
+    const sortablePosts =
+      sortMode === "popular"
+        ? postsInRecentWindow
+        : sortMode === "closingSoon" && activeBoard === "examAuction"
+          ? closingSoonPosts
+          : filteredPosts;
+
+    return [...sortablePosts].sort((first, second) => {
+      if (sortMode === "closingSoon" && activeBoard === "examAuction") {
+        return getEndsAtTime(first) - getEndsAtTime(second);
+      }
+
+      if (sortMode === "popular") {
+        const likeDifference = second.likes - first.likes;
+
+        if (likeDifference !== 0) {
+          return likeDifference;
+        }
+      }
+
+      return getCreatedAtTime(second) - getCreatedAtTime(first);
+    });
+  }, [activeBoard, canSortPosts, filteredPosts, sortMode]);
+
+  // 오른쪽 추천 랭킹은 강의평을 제외한 더미 데이터의 추천수를 기준으로 계산합니다.
   const ranking = useMemo(() => {
-    return [...allPosts]
+    return [...basePosts]
       .map((post) => ({
         id: post.id,
         author: post.author,
@@ -140,7 +283,9 @@ export default function CommunityBoard({
                 <input
                   aria-label={ui.searchLabel}
                   className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#aaaaaa]"
+                  onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder={ui.searchPlaceholder}
+                  value={searchQuery}
                 />
               </div>
               {writeHref ? (
@@ -161,7 +306,9 @@ export default function CommunityBoard({
                   <input
                     aria-label="강의명 검색"
                     className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#aaaaaa]"
+                    onChange={(event) => setCourseQuery(event.target.value)}
                     placeholder="강의명을 검색하세요"
+                    value={courseQuery}
                   />
                 </label>
                 <label className="flex min-w-0 items-center gap-2 rounded-md border border-[#dedede] bg-[#fafafa] px-3 py-2">
@@ -171,7 +318,9 @@ export default function CommunityBoard({
                   <input
                     aria-label="교수명 검색"
                     className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#aaaaaa]"
+                    onChange={(event) => setProfessorQuery(event.target.value)}
                     placeholder="교수명을 검색하세요"
+                    value={professorQuery}
                   />
                 </label>
               </div>
@@ -193,19 +342,38 @@ export default function CommunityBoard({
           {/* 실제 게시글 목록입니다. 게시판 페이지에서 넘겨준 posts 배열을 순서대로 렌더링합니다. */}
           <article className="rounded-md border border-[#dedede] bg-white">
             <div className="border-b border-[#eeeeee] px-4 py-3">
-              <div className="flex items-center justify-between gap-3">
+              <div>
                 <h2 className="text-base font-bold">{title}</h2>
-                <span className="text-xs font-medium text-[#c62917]">
-                  {eyebrow}
-                </span>
               </div>
-              {description ? (
-                <p className="mt-1 text-sm leading-6 text-[#777777]">
-                  {description}
-                </p>
-              ) : null}
+              <div className="mt-1 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                {description ? (
+                  <p className="min-w-0 text-sm leading-6 text-[#777777]">
+                    {description}
+                  </p>
+                ) : (
+                  <span />
+                )}
+                {canSortPosts ? (
+                  <div className="inline-flex shrink-0 rounded-md border border-[#dedede] bg-[#fafafa] p-0.5">
+                    {visibleSortOptions.map((option) => (
+                      <button
+                        className={`h-7 rounded px-2.5 text-xs font-bold transition ${
+                          sortMode === option.value
+                            ? "bg-white text-[#c62917] shadow-sm"
+                            : "text-[#777777] hover:text-[#c62917]"
+                        }`}
+                        key={option.value}
+                        onClick={() => setSortMode(option.value)}
+                        type="button"
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </div>
-            {posts.map((post) => (
+            {sortedPosts.map((post) => (
               <div
                 className="border-b border-[#eeeeee] px-4 py-4 last:border-b-0 hover:bg-[#fafafa]"
                 key={post.id}
@@ -278,9 +446,11 @@ export default function CommunityBoard({
                 </Link>
                 {/* 하단 액션 영역: 좋아요/댓글 수와 추천 버튼을 함께 배치합니다. */}
                 <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-[#888888]">
-                  <span className="inline-flex h-8 items-center px-1 text-[#c62917]">
-                    {ui.likes} {post.likes}
-                  </span>
+                  {post.boardKey !== "reviews" ? (
+                    <span className="inline-flex h-8 items-center px-1 text-[#c62917]">
+                      {ui.likes} {post.likes}
+                    </span>
+                  ) : null}
                   {post.boardKey !== "reviews" ? (
                     <span className="inline-flex h-8 items-center px-1">
                       {ui.comments} {post.comments}

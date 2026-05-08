@@ -2,7 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import BidPanel from "../../bid-panel";
 import CommentSection from "../../comment-section";
-import { allPosts } from "../../community-data";
+import {
+  allPosts,
+  type AssignmentLoad,
+  type GradingStyle,
+  type ReviewEntry,
+  type TeamProjectLoad,
+} from "../../community-data";
 import MarketPurchaseButton from "../../market-purchase-button";
 import PostCounterButton from "../../post-counter-button";
 import ReportAuthorButton from "../../report-author-button";
@@ -33,7 +39,40 @@ const text = {
   rating: "평점",
   professor: "교수",
   lockedAuction: "낙찰된 사용자만 게시물 내용을 확인할 수 있습니다.",
+  reviewCount: "강의평",
+  assignment: "과제",
+  teamProject: "조모임",
+  grading: "성적",
 };
+
+const assignmentOptions: AssignmentLoad[] = ["많음", "보통", "적음", "없음"];
+const teamProjectOptions: TeamProjectLoad[] = ["많음", "보통", "적음", "없음"];
+const gradingOptions: GradingStyle[] = ["너그러움", "보통", "깐깐함"];
+
+function getAverageRating(entries: ReviewEntry[]) {
+  return (
+    entries.reduce((total, entry) => total + entry.rating, 0) / entries.length
+  );
+}
+
+function getRatingPercent(entries: ReviewEntry[]) {
+  return Math.round((getAverageRating(entries) / 5) * 100);
+}
+
+function getOptionPercent<T extends string>(
+  entries: ReviewEntry[],
+  options: T[],
+  getValue: (entry: ReviewEntry) => T,
+) {
+  return options.map((option) => {
+    const count = entries.filter((entry) => getValue(entry) === option).length;
+
+    return {
+      label: option,
+      percent: Math.round((count / entries.length) * 100),
+    };
+  });
+}
 
 // 정적 생성 대상이 될 게시글 id 목록을 Next.js에 알려줍니다.
 // allPosts의 모든 id를 문자열로 바꿔 /posts/1, /posts/2 같은 경로를 미리 만들게 합니다.
@@ -56,6 +95,8 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const canViewContent = !post.currentBid || post.isAwarded;
   const canWriteComments = post.boardKey !== "reviews";
+  const isReviewPost = post.boardKey === "reviews";
+  const reviewEntries = post.reviewEntries ?? [];
 
   return (
     <main className="min-h-screen bg-[#f5f5f5] px-4 py-8 text-[#222222]">
@@ -76,16 +117,22 @@ export default async function PostPage({ params }: PostPageProps) {
           </div>
           {/* 게시글 제목과 작성자/추천수 정보를 헤더 영역에서 강조합니다. */}
           <h1 className="text-2xl font-bold leading-8">{post.title}</h1>
-          <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-semibold text-[#777777]">
-            <span className="inline-flex h-8 items-center">
-              {text.author} {post.author}
-            </span>
-            <PostCounterButton
-              initialCount={post.authorRecommendations}
-              label={text.recommend}
-            />
-            <ReportAuthorButton author={post.author} />
-          </div>
+          {isReviewPost ? (
+            <p className="mt-3 text-sm font-semibold text-[#777777]">
+              {post.professor} · {text.reviewCount} {reviewEntries.length}개
+            </p>
+          ) : (
+            <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-semibold text-[#777777]">
+              <span className="inline-flex h-8 items-center">
+                {text.author} {post.author}
+              </span>
+              <PostCounterButton
+                initialCount={post.authorRecommendations}
+                label={text.recommend}
+              />
+              <ReportAuthorButton author={post.author} />
+            </div>
+          )}
         </header>
 
         <section className="space-y-5 px-5 py-5">
@@ -97,7 +144,35 @@ export default async function PostPage({ params }: PostPageProps) {
           ) : null}
 
           {/* 족보경매장 글은 낙찰된 경우에만 본문 내용을 보여줍니다. */}
-          {canViewContent ? (
+          {isReviewPost && reviewEntries.length > 0 ? (
+            <>
+              <ReviewMetricSummary entries={reviewEntries} />
+              <section className="space-y-3">
+                <h2 className="text-sm font-black text-[#333333]">
+                  작성자별 강의평
+                </h2>
+                <ol className="divide-y divide-[#eeeeee] rounded-md border border-[#eeeeee]">
+                  {reviewEntries.map((entry) => (
+                    <li className="px-4 py-4" key={entry.id}>
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-[#777777]">
+                        <span className="text-[#c62917]">
+                          {entry.courseYear}년 {entry.courseSemester} 수강자
+                        </span>
+                        <span>{entry.time}</span>
+                        <span>평점 {Math.round(entry.rating)}점</span>
+                        <span>과제 {entry.assignmentLoad}</span>
+                        <span>조모임 {entry.teamProjectLoad}</span>
+                        <span>성적 {entry.gradingStyle}</span>
+                      </div>
+                      <p className="mt-2 whitespace-pre-line text-sm leading-7 text-[#333333]">
+                        {entry.content}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            </>
+          ) : canViewContent ? (
             <p className="whitespace-pre-line text-base leading-8 text-[#333333]">
               {post.preview}
             </p>
@@ -154,11 +229,13 @@ export default async function PostPage({ params }: PostPageProps) {
 
           {/* 본문 하단에는 좋아요/댓글 수와 목록 이동 버튼을 같은 줄에 배치합니다. */}
           <div className="flex flex-wrap items-center gap-2 border-t border-[#eeeeee] pt-4 text-sm font-bold text-[#777777]">
-            <PostCounterButton
-              initialCount={post.likes}
-              label={text.likes}
-              tone="red"
-            />
+            {!isReviewPost ? (
+              <PostCounterButton
+                initialCount={post.likes}
+                label={text.likes}
+                tone="red"
+              />
+            ) : null}
             {canWriteComments ? (
               <span className="inline-flex h-8 items-center px-1">
                 {text.comments} {post.comments}
@@ -186,5 +263,78 @@ export default async function PostPage({ params }: PostPageProps) {
         ) : null}
       </article>
     </main>
+  );
+}
+
+function ReviewMetricSummary({ entries }: { entries: ReviewEntry[] }) {
+  const averageRating = getAverageRating(entries);
+  const ratingPercent = getRatingPercent(entries);
+
+  return (
+    <section className="grid gap-3 rounded-md border border-[#eeeeee] bg-[#fafafa] p-4 sm:grid-cols-2">
+      <ReviewPercentCard
+        label={text.rating}
+        rows={[
+          {
+            label: `${averageRating.toFixed(1)}점`,
+            percent: ratingPercent,
+          },
+        ]}
+      />
+      <ReviewPercentCard
+        label={text.assignment}
+        rows={getOptionPercent(
+          entries,
+          assignmentOptions,
+          (entry) => entry.assignmentLoad,
+        )}
+      />
+      <ReviewPercentCard
+        label={text.teamProject}
+        rows={getOptionPercent(
+          entries,
+          teamProjectOptions,
+          (entry) => entry.teamProjectLoad,
+        )}
+      />
+      <ReviewPercentCard
+        label={text.grading}
+        rows={getOptionPercent(
+          entries,
+          gradingOptions,
+          (entry) => entry.gradingStyle,
+        )}
+      />
+    </section>
+  );
+}
+
+function ReviewPercentCard({
+  label,
+  rows,
+}: {
+  label: string;
+  rows: Array<{ label: string; percent: number }>;
+}) {
+  return (
+    <div className="rounded-md border border-[#eeeeee] bg-white p-3">
+      <h2 className="text-sm font-black text-[#333333]">{label}</h2>
+      <div className="mt-3 space-y-2">
+        {rows.map((row) => (
+          <div className="grid grid-cols-[72px_1fr_44px] items-center gap-2" key={row.label}>
+            <span className="text-xs font-bold text-[#666666]">{row.label}</span>
+            <div className="h-2 overflow-hidden rounded-full bg-[#eeeeee]">
+              <div
+                className="h-full rounded-full bg-[#c62917]"
+                style={{ width: `${row.percent}%` }}
+              />
+            </div>
+            <span className="text-right text-xs font-black text-[#c62917]">
+              {row.percent}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 export const localStorageChangedEvent = "campus-board-local-storage-changed";
+export const submittedReviewsStorageKey = "campus-board-submitted-reviews";
 
 export function safeJsonParse<T>(value: string | null, fallback: T): T {
   if (!value) {

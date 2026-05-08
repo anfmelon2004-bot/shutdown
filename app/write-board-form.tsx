@@ -4,6 +4,17 @@
 // 게시판마다 필요한 추가 입력값이 다르기 때문에 boardType 값에 따라 필드를 조건부로 보여줍니다.
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import type {
+  AssignmentLoad,
+  GradingStyle,
+  StoredReviewPost,
+  TeamProjectLoad,
+} from "./community-data";
+import {
+  notifyLocalStorageChanged,
+  safeJsonParse,
+  submittedReviewsStorageKey,
+} from "./storage";
 
 type WriteBoardType = "free" | "market" | "examAuction" | "reviews";
 
@@ -70,9 +81,14 @@ const professorOptions = [
   "최민재 교수",
 ];
 
-const ratingOptions = Array.from({ length: 11 }, (_, index) =>
-  String(index * 0.5),
+const ratingOptions = Array.from({ length: 5 }, (_, index) =>
+  String(index + 1),
 );
+const assignmentOptions: AssignmentLoad[] = ["많음", "보통", "적음", "없음"];
+const teamProjectOptions: TeamProjectLoad[] = ["많음", "보통", "적음", "없음"];
+const gradingOptions: GradingStyle[] = ["너그러움", "보통", "깐깐함"];
+const courseYearOptions = ["2026", "2025", "2024", "2023", "2022"];
+const courseSemesterOptions = ["1학기", "여름학기", "2학기", "겨울학기"];
 
 export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
   const settings = boardSettings[boardType];
@@ -80,7 +96,7 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
   const isExamAuction = boardType === "examAuction";
   const isReview = boardType === "reviews";
 
-  // 제출 후에는 실제 DB 저장 대신 화면 아래 미리보기 카드에 작성 결과를 보여줍니다.
+  // 제출 후에는 현재 브라우저에 저장하고 화면 아래 미리보기 카드에 작성 결과를 보여줍니다.
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   // 익명 체크 여부에 따라 작성자 표시 이름이 달라집니다.
@@ -95,6 +111,13 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
   const [startPrice, setStartPrice] = useState("");
   const [auctionEndTime, setAuctionEndTime] = useState("");
   const [rating, setRating] = useState("5");
+  const [courseYear, setCourseYear] = useState("2026");
+  const [courseSemester, setCourseSemester] = useState("1학기");
+  const [assignmentLoad, setAssignmentLoad] =
+    useState<AssignmentLoad>("보통");
+  const [teamProjectLoad, setTeamProjectLoad] =
+    useState<TeamProjectLoad>("보통");
+  const [gradingStyle, setGradingStyle] = useState<GradingStyle>("보통");
 
   // 사진은 파일 자체를 업로드하지 않고, 현재 선택된 파일 이름을 미리보기용으로 보여줍니다.
   const [photoNames, setPhotoNames] = useState<string[]>([]);
@@ -103,6 +126,35 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (isReview) {
+      const savedReviews = safeJsonParse<StoredReviewPost[]>(
+        window.localStorage.getItem(submittedReviewsStorageKey),
+        [],
+      );
+      const now = new Date();
+      const nextReview: StoredReviewPost = {
+        assignmentLoad,
+        content,
+        courseName,
+        courseSemester,
+        courseYear,
+        createdAt: now.toISOString(),
+        gradingStyle,
+        id: now.getTime(),
+        professor: professorName,
+        rating,
+        teamProjectLoad,
+        time: "방금",
+      };
+
+      window.localStorage.setItem(
+        submittedReviewsStorageKey,
+        JSON.stringify([nextReview, ...savedReviews]),
+      );
+      notifyLocalStorageChanged();
+    }
+
     setIsSubmitted(true);
   };
 
@@ -134,38 +186,25 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
           onSubmit={handleSubmit}
         >
           <div className="space-y-5">
-            {/* 모든 게시판에서 공통으로 받는 제목 입력칸입니다. */}
-            <label className="block">
-              <span className="mb-2 block text-sm font-bold text-[#333333]">
-                제목
-              </span>
-              <input
-                className="h-12 w-full rounded-md border border-[#d9d9d9] bg-white px-3 text-sm outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
-                name="title"
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="제목을 입력하세요"
-                required
-                type="text"
-                value={title}
-              />
-            </label>
+            {/* 강의평은 강의명 자체가 제목 역할을 하므로 별도 제목 입력칸을 숨깁니다. */}
+            {!isReview ? (
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-[#333333]">
+                  제목
+                </span>
+                <input
+                  className="h-12 w-full rounded-md border border-[#d9d9d9] bg-white px-3 text-sm outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
+                  name="title"
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="제목을 입력하세요"
+                  required
+                  type="text"
+                  value={title}
+                />
+              </label>
+            ) : null}
 
-            {/* 모든 게시판에서 공통으로 받는 본문 입력칸입니다. */}
-            <label className="block">
-              <span className="mb-2 block text-sm font-bold text-[#333333]">
-                내용
-              </span>
-              <textarea
-                className="min-h-40 w-full resize-y rounded-md border border-[#d9d9d9] bg-white px-3 py-3 text-sm leading-6 outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
-                name="content"
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="내용을 입력하세요"
-                required
-                value={content}
-              />
-            </label>
-
-            {/* 강의평게시판은 강의명과 교수명을 검색 후보에서 고르고, 평점은 0.5점 단위로 선택합니다. */}
+            {/* 강의평게시판은 강의명과 교수명을 검색 후보에서 고르고, 평점은 1점 단위로 선택합니다. */}
             {isReview ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
@@ -210,26 +249,102 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
                   </datalist>
                 </label>
 
-                <label className="block sm:col-span-2">
+                <label className="block">
                   <span className="mb-2 block text-sm font-bold text-[#333333]">
-                    평점
+                    수강 연도
                   </span>
                   <select
                     className="h-12 w-full rounded-md border border-[#d9d9d9] bg-white px-3 text-sm outline-none focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
-                    name="rating"
-                    onChange={(event) => setRating(event.target.value)}
+                    name="courseYear"
+                    onChange={(event) => setCourseYear(event.target.value)}
                     required
-                    value={rating}
+                    value={courseYear}
                   >
-                    {ratingOptions.map((ratingOption) => (
-                      <option key={ratingOption} value={ratingOption}>
-                        {ratingOption}점
+                    {courseYearOptions.map((year) => (
+                      <option key={year} value={year}>
+                        {year}년
                       </option>
                     ))}
                   </select>
                 </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-[#333333]">
+                    수강 학기
+                  </span>
+                  <select
+                    className="h-12 w-full rounded-md border border-[#d9d9d9] bg-white px-3 text-sm outline-none focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
+                    name="courseSemester"
+                    onChange={(event) => setCourseSemester(event.target.value)}
+                    required
+                    value={courseSemester}
+                  >
+                    {courseSemesterOptions.map((semester) => (
+                      <option key={semester} value={semester}>
+                        {semester}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <div className="grid gap-4 sm:col-span-2 lg:grid-cols-4">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-bold text-[#333333]">
+                      평점
+                    </span>
+                    <select
+                      className="h-12 w-full rounded-md border border-[#d9d9d9] bg-white px-3 text-sm outline-none focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
+                      name="rating"
+                      onChange={(event) => setRating(event.target.value)}
+                      required
+                      value={rating}
+                    >
+                      {ratingOptions.map((ratingOption) => (
+                        <option key={ratingOption} value={ratingOption}>
+                          {ratingOption}점
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <ReviewChoiceGroup
+                    label="과제"
+                    name="assignmentLoad"
+                    onChange={setAssignmentLoad}
+                    options={assignmentOptions}
+                    value={assignmentLoad}
+                  />
+                  <ReviewChoiceGroup
+                    label="조모임"
+                    name="teamProjectLoad"
+                    onChange={setTeamProjectLoad}
+                    options={teamProjectOptions}
+                    value={teamProjectLoad}
+                  />
+                  <ReviewChoiceGroup
+                    label="성적"
+                    name="gradingStyle"
+                    onChange={setGradingStyle}
+                    options={gradingOptions}
+                    value={gradingStyle}
+                  />
+                </div>
               </div>
             ) : null}
+
+            {/* 모든 게시판에서 공통으로 받는 본문 입력칸입니다. */}
+            <label className="block">
+              <span className="mb-2 block text-sm font-bold text-[#333333]">
+                내용
+              </span>
+              <textarea
+                className="min-h-40 w-full resize-y rounded-md border border-[#d9d9d9] bg-white px-3 py-3 text-sm leading-6 outline-none placeholder:text-[#aaaaaa] focus:border-[#c62917] focus:ring-2 focus:ring-[#c62917]/10"
+                name="content"
+                onChange={(event) => setContent(event.target.value)}
+                placeholder="내용을 입력하세요"
+                required
+                value={content}
+              />
+            </label>
 
             {/* 장터게시판은 판매 가격 입력이 필요합니다. */}
             {isMarket ? (
@@ -343,17 +458,19 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-            {/* 모든 게시판 글쓰기에서 익명 작성 여부를 선택할 수 있습니다. */}
-            <label className="flex h-12 w-fit items-center gap-2 rounded-md border border-[#eeeeee] bg-[#fafafa] px-3 text-sm font-semibold text-[#333333]">
-              <input
-                checked={isAnonymous}
-                className="h-4 w-4 accent-[#c62917]"
-                name="anonymous"
-                onChange={(event) => setIsAnonymous(event.target.checked)}
-                type="checkbox"
-              />
-              익명
-            </label>
+            {/* 강의평은 수강 시점으로 표시하므로 익명 선택이 필요하지 않습니다. */}
+            {!isReview ? (
+              <label className="flex h-12 w-fit items-center gap-2 rounded-md border border-[#eeeeee] bg-[#fafafa] px-3 text-sm font-semibold text-[#333333]">
+                <input
+                  checked={isAnonymous}
+                  className="h-4 w-4 accent-[#c62917]"
+                  name="anonymous"
+                  onChange={(event) => setIsAnonymous(event.target.checked)}
+                  type="checkbox"
+                />
+                익명
+              </label>
+            ) : null}
             <button
               className="h-12 flex-1 rounded-md bg-[#c62917] text-sm font-bold !text-white transition hover:bg-[#ae2112]"
               type="submit"
@@ -363,22 +480,31 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
           </div>
         </form>
 
-        {/* 제출 후에는 작성자명이 익명/닉네임 중 무엇으로 올라가는지 확인할 수 있게 보여줍니다. */}
+        {/* 제출 후에는 게시판에 반영될 내용을 한 번 더 확인할 수 있게 보여줍니다. */}
         {isSubmitted ? (
           <section className="mt-5 rounded-md border border-[#dedede] bg-white p-5">
             <p className="text-sm font-bold text-[#c62917]">
               게시글 미리보기
             </p>
             <h2 className="mt-2 text-xl font-black">
-              {title || "제목 없음"}
+              {isReview ? courseName || "강의명 없음" : title || "제목 없음"}
             </h2>
             <div className="mt-3 flex flex-wrap gap-3 text-sm font-semibold text-[#777777]">
               <span>{settings.boardName}</span>
-              <span>작성자 {authorName}</span>
+              {isReview ? (
+                <span>
+                  {courseYear}년 {courseSemester} 수강자
+                </span>
+              ) : (
+                <span>작성자 {authorName}</span>
+              )}
               {price ? <span>판매 가격 {price}</span> : null}
               {courseName ? <span>강의명 {courseName}</span> : null}
               {professorName ? <span>교수명 {professorName}</span> : null}
               {isReview ? <span>평점 {rating}점</span> : null}
+              {isReview ? <span>과제 {assignmentLoad}</span> : null}
+              {isReview ? <span>조모임 {teamProjectLoad}</span> : null}
+              {isReview ? <span>성적 {gradingStyle}</span> : null}
               {startPrice ? <span>시작가 {startPrice}</span> : null}
               {auctionEndTime ? <span>마감 {auctionEndTime}</span> : null}
             </div>
@@ -401,5 +527,49 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
         ) : null}
       </section>
     </main>
+  );
+}
+
+function ReviewChoiceGroup<T extends string>({
+  label,
+  name,
+  onChange,
+  options,
+  value,
+}: {
+  label: string;
+  name: string;
+  onChange: (value: T) => void;
+  options: T[];
+  value: T;
+}) {
+  return (
+    <fieldset>
+      <legend className="mb-2 block text-sm font-bold text-[#333333]">
+        {label}
+      </legend>
+      <div className="flex min-h-12 flex-wrap overflow-hidden rounded-md border border-[#d9d9d9] bg-white">
+        {options.map((option) => (
+          <label
+            className={`flex min-h-10 flex-1 cursor-pointer items-center justify-center whitespace-nowrap border-r border-[#eeeeee] px-2 text-xs font-bold last:border-r-0 ${
+              value === option
+                ? "bg-[#fff5f3] text-[#c62917]"
+                : "text-[#666666] hover:bg-[#fafafa]"
+            }`}
+            key={option}
+          >
+            <input
+              checked={value === option}
+              className="sr-only"
+              name={name}
+              onChange={() => onChange(option)}
+              type="radio"
+              value={option}
+            />
+            {option}
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
 }
