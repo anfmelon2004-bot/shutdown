@@ -6,6 +6,7 @@ import { authStorageKey, nicknameStorageKey } from "./auth-link";
 
 type CommentSectionProps = {
   initialCount: number;
+  postAuthor: string;
 };
 
 type CommentItem = {
@@ -16,7 +17,10 @@ type CommentItem = {
   isAnonymous: boolean;
 };
 
-export default function CommentSection({ initialCount }: CommentSectionProps) {
+export default function CommentSection({
+  initialCount,
+  postAuthor,
+}: CommentSectionProps) {
   const [content, setContent] = useState("");
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -54,7 +58,11 @@ export default function CommentSection({ initialCount }: CommentSectionProps) {
       return [
         ...current,
         {
-          author: isAnonymous ? anonymousAuthor : nickname,
+          author: isAnonymous
+            ? anonymousAuthor
+            : nickname === postAuthor
+              ? "작성자"
+              : nickname,
           authorKey: userId,
           content: nextContent,
           id: Date.now(),
@@ -101,7 +109,13 @@ export default function CommentSection({ initialCount }: CommentSectionProps) {
         <ol className="mt-4 divide-y divide-[#eeeeee] rounded-md border border-[#eeeeee]">
           {comments.map((comment) => (
             <li className="px-4 py-3 text-sm leading-6 text-[#333333]" key={comment.id}>
-              <p className="mb-1 text-xs font-black text-[#c62917]">
+              <p
+                className={`mb-1 text-xs font-black ${
+                  comment.author === "작성자"
+                    ? "text-[#2563eb]"
+                    : "text-[#c62917]"
+                }`}
+              >
                 {comment.author}
               </p>
               <p>{comment.content}</p>

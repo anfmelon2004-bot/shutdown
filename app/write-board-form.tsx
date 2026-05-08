@@ -76,7 +76,6 @@ const ratingOptions = Array.from({ length: 11 }, (_, index) =>
 
 export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
   const settings = boardSettings[boardType];
-  const usesAnonymous = boardType === "free" || boardType === "market";
   const isMarket = boardType === "market";
   const isExamAuction = boardType === "examAuction";
   const isReview = boardType === "reviews";
@@ -100,7 +99,7 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
   // 사진은 파일 자체를 업로드하지 않고, 현재 선택된 파일 이름을 미리보기용으로 보여줍니다.
   const [photoNames, setPhotoNames] = useState<string[]>([]);
 
-  const authorName = usesAnonymous && isAnonymous ? "익명" : defaultNickname;
+  const authorName = isAnonymous ? "익명" : defaultNickname;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -232,20 +231,6 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
               </div>
             ) : null}
 
-            {/* 자유게시판과 장터게시판은 익명 작성이 가능하므로 체크박스를 보여줍니다. */}
-            {usesAnonymous ? (
-              <label className="flex items-center gap-3 rounded-md border border-[#eeeeee] bg-[#fafafa] px-3 py-3 text-sm font-semibold text-[#333333]">
-                <input
-                  checked={isAnonymous}
-                  className="h-4 w-4 accent-[#c62917]"
-                  name="anonymous"
-                  onChange={(event) => setIsAnonymous(event.target.checked)}
-                  type="checkbox"
-                />
-                익명으로 올리기
-              </label>
-            ) : null}
-
             {/* 장터게시판은 판매 가격 입력이 필요합니다. */}
             {isMarket ? (
               <label className="block">
@@ -357,12 +342,25 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
             ) : null}
           </div>
 
-          <button
-            className="mt-6 h-12 w-full rounded-md bg-[#c62917] text-sm font-bold !text-white transition hover:bg-[#ae2112]"
-            type="submit"
-          >
-            {settings.submitLabel}
-          </button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* 모든 게시판 글쓰기에서 익명 작성 여부를 선택할 수 있습니다. */}
+            <label className="flex h-12 w-fit items-center gap-2 rounded-md border border-[#eeeeee] bg-[#fafafa] px-3 text-sm font-semibold text-[#333333]">
+              <input
+                checked={isAnonymous}
+                className="h-4 w-4 accent-[#c62917]"
+                name="anonymous"
+                onChange={(event) => setIsAnonymous(event.target.checked)}
+                type="checkbox"
+              />
+              익명
+            </label>
+            <button
+              className="h-12 flex-1 rounded-md bg-[#c62917] text-sm font-bold !text-white transition hover:bg-[#ae2112]"
+              type="submit"
+            >
+              {settings.submitLabel}
+            </button>
+          </div>
         </form>
 
         {/* 제출 후에는 작성자명이 익명/닉네임 중 무엇으로 올라가는지 확인할 수 있게 보여줍니다. */}

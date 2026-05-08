@@ -175,7 +175,9 @@ export default async function PostPage({ params }: PostPageProps) {
             </Link>
           </div>
         </section>
-        {canWriteComments ? <CommentSection initialCount={post.comments} /> : null}
+        {canWriteComments ? (
+          <CommentSection initialCount={post.comments} postAuthor={post.author} />
+        ) : null}
       </article>
     </main>
   );
