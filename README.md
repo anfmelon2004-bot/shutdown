@@ -32,3 +32,15 @@ git보다 앞서갈 때 [git push]    >Your branch is ahead of 'origin/main'
 제재자 접근 권한 변경 기능 추가
 개인간 채팅 기능 추가
 ```
+
+## 빠른 시작(데이터 베이스)
+Docker 설치 후 cmd 관리자 권한으로 3개 실행해서 밑의 명령어 구동하면 됩니다.
+
+### 1. Docker 실행
+docker run --name mysql -e MYSQL_ROOT_PASSWORD=mysql_password -e MYSQL_DATABASE=shutdown_db -p 3306:3306 -d mysql:8.0
+
+### 2. Backend 실행 (자동으로 DB 테이블 생성됨)
+cd backend && python -m uvicorn app.main:app --reload --port 8010
+
+### 3. Frontend 실행
+cd frontend && npm install && npm run dev
