@@ -23,10 +23,14 @@ class ReviewPostUpdate(BaseModel):
     # 목적: 작성자가 필요한 필드만 선택적으로 수정합니다.
     title: str | None = None
     content: str | None = None
+    course_name: str | None = None
+    professor_name: str | None = None
     assignment_level: AssignmentLevel | None = None
     team_project_load: TeamProjectLoad | None = None
     grading_style: GradingStyle | None = None
     rating: int | None = None
+    year: int | None = None
+    semester: Semester | None = None
 
 
 class ReviewPostResponse(BaseModel):

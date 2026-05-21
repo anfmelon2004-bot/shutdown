@@ -131,6 +131,10 @@ def update_post(
         post.title = body.title
     if body.content is not None:
         post.content = body.content
+    if body.course_name is not None:
+        post.course_name = body.course_name
+    if body.professor_name is not None:
+        post.professor_name = body.professor_name
     if body.assignment_level is not None:
         post.assignment_level = body.assignment_level
     if body.team_project_load is not None:
@@ -139,6 +143,10 @@ def update_post(
         post.grading_style = body.grading_style
     if body.rating is not None:
         post.rating = body.rating
+    if body.year is not None:
+        post.year = body.year
+    if body.semester is not None:
+        post.semester = body.semester
 
     db.commit()
     db.refresh(post)

@@ -162,6 +162,7 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
         setAssignmentLoad(({"many":"많음","normal":"보통","few":"적음","none":"없음"} as Record<string,AssignmentLoad>)[d.assignment_level] ?? "보통");
         setTeamProjectLoad(({"many":"많음","normal":"보통","few":"적음","none":"없음"} as Record<string,TeamProjectLoad>)[d.team_project_load] ?? "보통");
         setGradingStyle(({"generous":"너그러움","normal":"보통","strict":"깐깐함"} as Record<string,GradingStyle>)[d.grading_style] ?? "보통");
+        setCourseSemester(({"1":"1학기","2":"2학기","summer":"여름학기","winter":"겨울학기"} as Record<string,string>)[d.semester] ?? "1학기");
       }).catch(() => {});
     } else if (isMarket) {
       getMarketPost(editId).then((d) => {
@@ -171,6 +172,8 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
       getAuctionPost(editId).then((d) => {
         setTitle(d.title); setContent(d.content);
         setCourseName(d.course_name); setProfessorName(d.professor_name);
+        setStartPrice(String(d.starting_price));
+        setAuctionEndTime(new Date(d.deadline).toISOString().slice(0, 16));
       }).catch(() => {});
     } else {
       getFreePost(editId).then((d) => {
@@ -245,6 +248,8 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
           await createAuctionPost(formData);
           router.push("/exam-auction");
         } else if (editId) {
+          formData.append("course_name", courseName);
+          formData.append("professor_name", professorName);
           await updateAuctionPost(editId, formData);
           router.push(`/posts/${editId}?board=examAuction`);
         }

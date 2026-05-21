@@ -141,6 +141,8 @@ async def update_post(
     post_id: int,
     title: str | None = Form(None),
     content: str | None = Form(None),
+    course_name: str | None = Form(None),
+    professor_name: str | None = Form(None),
     image: UploadFile | None = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -160,6 +162,10 @@ async def update_post(
         post.title = title
     if content is not None:
         post.content = content
+    if course_name is not None:
+        post.course_name = course_name
+    if professor_name is not None:
+        post.professor_name = professor_name
     if image and image.filename:
         delete_image(post.image_path)
         post.image_path = await save_image(image)
