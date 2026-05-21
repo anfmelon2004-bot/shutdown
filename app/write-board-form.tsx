@@ -4,9 +4,9 @@
 // 게시판마다 필요한 추가 입력값이 다르기 때문에 boardType 값에 따라 필드를 조건부로 보여줍니다.
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AssignmentLoad, GradingStyle, TeamProjectLoad } from "./community-data";
-import { createAuctionPost, createFreePost, createMarketPost, createReview } from "./lib/api";
+import { createAuctionPost, createFreePost, createMarketPost, createReview, JWT_KEY } from "./lib/api";
 
 const ASSIGNMENT_API_MAP: Record<AssignmentLoad, string> = {
   "많음": "many", "보통": "normal", "적음": "few", "없음": "none",
@@ -97,6 +97,13 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
   const isMarket = boardType === "market";
   const isExamAuction = boardType === "examAuction";
   const isReview = boardType === "reviews";
+
+  const router = useRouter();
+  useEffect(() => {
+    if (!window.localStorage.getItem(JWT_KEY)) {
+      router.replace("/login");
+    }
+  }, [router]);
   const sanitizeMoneyInput = (value: string) => value.replace(/\D/g, "");
   const toMoneyNumber = (value: string) => Number(sanitizeMoneyInput(value));
   const isValidMoneyUnit = (amount: number) => amount > 0 && amount % 100 === 0;
@@ -127,7 +134,6 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoNames, setPhotoNames] = useState<string[]>([]);
 
-  const router = useRouter();
   const [submitError, setSubmitError] = useState("");
   const authorName = isAnonymous ? "익명" : defaultNickname;
 
