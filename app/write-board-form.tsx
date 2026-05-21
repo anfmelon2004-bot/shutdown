@@ -99,11 +99,16 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
   const isReview = boardType === "reviews";
 
   const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
   useEffect(() => {
-    if (!window.localStorage.getItem(JWT_KEY)) {
+    if (window.localStorage.getItem(JWT_KEY)) {
+      setIsAuthorized(true);
+    } else {
       router.replace("/login");
     }
   }, [router]);
+
+  if (!isAuthorized) return null;
   const sanitizeMoneyInput = (value: string) => value.replace(/\D/g, "");
   const toMoneyNumber = (value: string) => Number(sanitizeMoneyInput(value));
   const isValidMoneyUnit = (amount: number) => amount > 0 && amount % 100 === 0;
