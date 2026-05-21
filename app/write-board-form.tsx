@@ -108,7 +108,6 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
     }
   }, [router]);
 
-  if (!isAuthorized) return null;
   const sanitizeMoneyInput = (value: string) => value.replace(/\D/g, "");
   const toMoneyNumber = (value: string) => Number(sanitizeMoneyInput(value));
   const isValidMoneyUnit = (amount: number) => amount > 0 && amount % 100 === 0;
@@ -141,6 +140,8 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
 
   const [submitError, setSubmitError] = useState("");
   const authorName = isAnonymous ? "익명" : defaultNickname;
+
+  if (!isAuthorized) return null;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
