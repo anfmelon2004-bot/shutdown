@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import CommunityBoard from "../community-board";
-import { freePosts, type CommunityPost } from "../community-data";
+import { type CommunityPost } from "../community-data";
 import { getFreePosts, type FreePostResponse } from "../lib/api";
 import { formatPostTime } from "../lib/time";
 
@@ -24,7 +24,7 @@ function toPost(p: FreePostResponse): CommunityPost {
 }
 
 export default function FreeBoardPage() {
-  const [posts, setPosts] = useState<CommunityPost[]>(freePosts);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
 
   useEffect(() => {
     const refreshPosts = () => {

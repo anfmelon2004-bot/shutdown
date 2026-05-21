@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import CommunityBoard from "../community-board";
-import { marketPosts, type CommunityPost } from "../community-data";
+import { type CommunityPost } from "../community-data";
 import { getMarketPosts, type MarketPostResponse } from "../lib/api";
 import { formatPostTime } from "../lib/time";
 
@@ -32,7 +32,7 @@ function toPost(p: MarketPostResponse): CommunityPost {
 }
 
 export default function MarketBoardPage() {
-  const [posts, setPosts] = useState<CommunityPost[]>(marketPosts);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
 
   useEffect(() => {
     const refreshPosts = () => {

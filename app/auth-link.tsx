@@ -20,6 +20,7 @@ export const nicknameStorageKey = "campus-board-nickname";
 export const nicknameByEmailStorageKey = "campus-board-nickname-by-email";
 export const userProfileStorageKey = "campus-board-user-profile";
 export const userRoleStorageKey = "campus-board-user-role";
+export const userNumericIdStorageKey = "campus-board-numeric-user-id";
 
 function getStoredAuthLabel() {
   return (

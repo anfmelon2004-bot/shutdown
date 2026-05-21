@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import CommunityBoard from "../community-board";
-import { examAuctionPosts, type CommunityPost } from "../community-data";
+import { type CommunityPost } from "../community-data";
 import { getAuctionPosts, type AuctionPostResponse } from "../lib/api";
 import { formatPostTime } from "../lib/time";
 
@@ -39,7 +39,7 @@ function toPost(p: AuctionPostResponse): CommunityPost {
 }
 
 export default function ExamAuctionPage() {
-  const [posts, setPosts] = useState<CommunityPost[]>(examAuctionPosts);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
 
   useEffect(() => {
     const refreshPosts = () => {

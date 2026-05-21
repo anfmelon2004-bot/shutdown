@@ -10,6 +10,7 @@ import {
   nicknameStorageKey,
   userRoleStorageKey,
   userProfileStorageKey,
+  userNumericIdStorageKey,
 } from "./auth-link";
 import { apiLogin, apiRegister, JWT_KEY } from "./lib/api";
 import { notifyLocalStorageChanged, safeJsonParse } from "./storage";
@@ -80,6 +81,7 @@ export default function Login() {
       window.localStorage.setItem(authStorageKey, userId);
       window.localStorage.setItem(nicknameStorageKey, nickname);
       window.localStorage.setItem(userRoleStorageKey, session.role);
+      window.localStorage.setItem(userNumericIdStorageKey, String(session.user_id));
       window.localStorage.setItem(
         userProfileStorageKey,
         JSON.stringify({
@@ -125,6 +127,7 @@ export default function Login() {
       window.localStorage.setItem(authStorageKey, userId);
       window.localStorage.setItem(nicknameStorageKey, nickname);
       window.localStorage.setItem(userRoleStorageKey, session.role);
+      window.localStorage.setItem(userNumericIdStorageKey, String(session.user_id));
       window.localStorage.setItem(
         userProfileStorageKey,
         JSON.stringify({ email, major, nickname, role: session.role, userId }),

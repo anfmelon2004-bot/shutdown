@@ -3,7 +3,7 @@
 // 각 게시판 페이지에서 공통으로 사용하는 목록, 검색, 추천 랭킹 UI입니다.
 import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import AuthLink from "./auth-link";
+import AuthLink, { authStorageKey, userNumericIdStorageKey } from "./auth-link";
 import {
   boards,
   createReviewPostFromStoredReview,
@@ -659,6 +659,7 @@ function RecommendButton({
 }) {
   const [countOverride, setCountOverride] = useState<number | null>(null);
   const [recommended, setRecommended] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const count = countOverride ?? initialCount;
 
   const handleClick = async (event: React.MouseEvent) => {
@@ -667,6 +668,13 @@ function RecommendButton({
 
     if (!authorId) return;
 
+    const currentUserId = Number(window.localStorage.getItem(userNumericIdStorageKey));
+    if (currentUserId && currentUserId === authorId) {
+      setErrorMessage("본인에게는 추천할 수 없습니다.");
+      return;
+    }
+
+    setErrorMessage("");
     try {
       const result = await toggleAuthorRecommendation(authorId);
       setCountOverride(result.recommendation_count);
@@ -678,14 +686,21 @@ function RecommendButton({
   };
 
   return (
-    <button
-      className={`inline-flex h-8 items-center px-1 transition ${
-        recommended ? "font-bold text-[#c62917]" : "text-[#777777] hover:text-[#c62917]"
-      }`}
-      onClick={handleClick}
-      type="button"
-    >
-      {label} {count}
-    </button>
+    <span className="relative inline-flex items-center">
+      <button
+        className={`inline-flex h-8 items-center px-1 transition ${
+          recommended ? "font-bold text-[#c62917]" : "text-[#777777] hover:text-[#c62917]"
+        }`}
+        onClick={handleClick}
+        type="button"
+      >
+        {label} {count}
+      </button>
+      {errorMessage ? (
+        <span className="absolute bottom-full left-0 z-50 mb-1 whitespace-nowrap rounded bg-[#333333] px-2 py-1 text-xs text-white">
+          {errorMessage}
+        </span>
+      ) : null}
+    </span>
   );
 }

@@ -348,6 +348,7 @@ function PostContent() {
               </span>
               <span className="inline-flex h-8 items-center">{author}</span>
               <PostCounterButton
+                authorId={post.data.author_id}
                 initialCount={post.data.author_recommendation_count}
                 label={text.recommend}
                 onToggle={() => toggleAuthorRecommendation(post.data.author_id)}
@@ -363,6 +364,7 @@ function PostContent() {
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm font-semibold text-[#777777]">
               <span className="inline-flex h-8 items-center">{author}</span>
               <PostCounterButton
+                authorId={post.data.author_id}
                 initialCount={post.data.author_recommendation_count}
                 label={text.recommend}
                 onToggle={() => toggleAuthorRecommendation(post.data.author_id)}

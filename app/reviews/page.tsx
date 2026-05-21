@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import CommunityBoard from "../community-board";
-import { groupedReviewPosts, type CommunityPost } from "../community-data";
+import { type CommunityPost } from "../community-data";
 import { getReviews, type ReviewPostResponse } from "../lib/api";
 import { formatPostTime } from "../lib/time";
 
@@ -42,7 +42,7 @@ function toPost(p: ReviewPostResponse): CommunityPost {
 }
 
 export default function ReviewBoardPage() {
-  const [posts, setPosts] = useState<CommunityPost[]>(groupedReviewPosts);
+  const [posts, setPosts] = useState<CommunityPost[]>([]);
 
   useEffect(() => {
     const refreshPosts = () => {
