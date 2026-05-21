@@ -39,7 +39,8 @@ def get_current_user(
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-    # 현재 상황: 토큰이 유효하고 DB에도 사용자가 존재하면 라우터에 User 객체를 넘겨줍니다.
+    if user.status == "suspended":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=user.sanction_reason or "정지된 계정입니다")
     return user
 
 

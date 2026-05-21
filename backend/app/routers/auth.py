@@ -108,31 +108,23 @@ def read_me(current_user: User = Depends(get_current_user)):
 
 def ensure_default_admin(db: Session) -> None:
     admin = db.query(User).filter(User.email == DEFAULT_ADMIN_EMAIL).first()
-
-    if not admin:
-        admin = (
-            db.query(User)
-            .filter(User.email == LEGACY_DEFAULT_ADMIN_EMAIL, User.username == DEFAULT_ADMIN_USERNAME)
-            .first()
-        )
-
     if admin:
-        admin.email = DEFAULT_ADMIN_EMAIL
-        admin.username = DEFAULT_ADMIN_USERNAME
-        admin.hashed_password = hash_password(DEFAULT_ADMIN_PASSWORD)
-        admin.role = "admin"
-        admin.status = "active"
-        admin.sanction_reason = None
+        return
+
+    legacy = (
+        db.query(User)
+        .filter(User.email == LEGACY_DEFAULT_ADMIN_EMAIL, User.username == DEFAULT_ADMIN_USERNAME)
+        .first()
+    )
+    if legacy:
+        legacy.email = DEFAULT_ADMIN_EMAIL
         db.commit()
         return
 
     username_owner = db.query(User).filter(User.username == DEFAULT_ADMIN_USERNAME).first()
     if username_owner:
         username_owner.email = DEFAULT_ADMIN_EMAIL
-        username_owner.hashed_password = hash_password(DEFAULT_ADMIN_PASSWORD)
         username_owner.role = "admin"
-        username_owner.status = "active"
-        username_owner.sanction_reason = None
         db.commit()
         return
 

@@ -155,6 +155,8 @@ def update_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다")
+    if user_id == admin.id:
+        raise HTTPException(status_code=400, detail="자신의 계정은 수정할 수 없습니다")
 
     if body.role is not None:
         if body.role not in {"user", "moderator", "admin"}:

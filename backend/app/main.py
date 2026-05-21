@@ -42,8 +42,7 @@ app = FastAPI(title="CRUD 게시판 API", version="1.0.0")
 # 목적: 개발 중에는 모든 origin을 허용하지만, 배포 시에는 실제 프론트 주소로 제한하는 것이 좋습니다.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 프론트 주소로 교체 권장
-    allow_credentials=True,
+    allow_origins=["*"],  # 배포 시 실제 프론트 주소로 교체 권장
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -133,6 +133,12 @@ def update_post(
         post.content = body.content
     if body.assignment_level is not None:
         post.assignment_level = body.assignment_level
+    if body.team_project_load is not None:
+        post.team_project_load = body.team_project_load
+    if body.grading_style is not None:
+        post.grading_style = body.grading_style
+    if body.rating is not None:
+        post.rating = body.rating
 
     db.commit()
     db.refresh(post)
@@ -173,8 +179,10 @@ def toggle_like(
     if existing:
         db.delete(existing)
         db.commit()
-        return LikeResponse(liked=False, like_count=len(post.likes) - 1)
+        db.refresh(post)
+        return LikeResponse(liked=False, like_count=len(post.likes))
     else:
         db.add(ReviewPostLike(user_id=current_user.id, post_id=post_id))
         db.commit()
-        return LikeResponse(liked=True, like_count=len(post.likes) + 1)
+        db.refresh(post)
+        return LikeResponse(liked=True, like_count=len(post.likes))

@@ -124,7 +124,7 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
     useState<TeamProjectLoad>("보통");
   const [gradingStyle, setGradingStyle] = useState<GradingStyle>("보통");
 
-  // 사진은 파일 자체를 업로드하지 않고, 현재 선택된 파일 이름을 미리보기용으로 보여줍니다.
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [photoNames, setPhotoNames] = useState<string[]>([]);
 
   const router = useRouter();
@@ -157,6 +157,9 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
       formData.append("title", title);
       formData.append("content", content);
       formData.append("is_anonymous", String(isAnonymous));
+      if (photoFiles[0]) {
+        formData.append("image", photoFiles[0]);
+      }
 
       if (isMarket) {
         const priceNum = toMoneyNumber(price);
@@ -472,13 +475,11 @@ export default function WriteBoardForm({ boardType }: WriteBoardFormProps) {
                   className="block w-full rounded-md border border-[#d9d9d9] bg-white px-3 py-3 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-[#fff5f3] file:px-3 file:py-2 file:text-sm file:font-bold file:text-[#c62917]"
                   multiple
                   name="photos"
-                  onChange={(event) =>
-                    setPhotoNames(
-                      Array.from(event.target.files ?? []).map(
-                        (file) => file.name,
-                      ),
-                    )
-                  }
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files ?? []) as File[];
+                    setPhotoFiles(files);
+                    setPhotoNames(files.map((f) => f.name));
+                  }}
                   type="file"
                 />
                 <p className="mt-2 text-xs text-[#888888]">

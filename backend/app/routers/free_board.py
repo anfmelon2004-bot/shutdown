@@ -268,8 +268,10 @@ def toggle_comment_like(
     if existing:
         db.delete(existing)
         db.commit()
-        return LikeResponse(liked=False, like_count=len(comment.likes) - 1)
+        db.refresh(comment)
+        return LikeResponse(liked=False, like_count=len(comment.likes))
     else:
         db.add(FreeCommentLike(user_id=current_user.id, comment_id=comment_id))
         db.commit()
-        return LikeResponse(liked=True, like_count=len(comment.likes) + 1)
+        db.refresh(comment)
+        return LikeResponse(liked=True, like_count=len(comment.likes))

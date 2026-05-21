@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { nicknameStorageKey } from "./auth-link";
 import { createFreeComment, getFreeComments } from "./lib/api";
 
 type CommentSectionProps = {
@@ -26,6 +25,7 @@ export default function CommentSection({
   const [content, setContent] = useState("");
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
     getFreeComments(postId)
@@ -76,6 +76,7 @@ export default function CommentSection({
     const trimmed = content.trim();
     if (!trimmed) return;
 
+    setSubmitError("");
     try {
       const comment = await createFreeComment(postId, trimmed, isAnonymous);
       setComments((prev) => [
@@ -90,18 +91,7 @@ export default function CommentSection({
       ]);
       setContent("");
     } catch {
-      const nickname = window.localStorage.getItem(nicknameStorageKey) || "사용자";
-      setComments((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          author: isAnonymous ? "익명" : nickname,
-          authorId: Date.now(),
-          content: trimmed,
-          isAnonymous,
-        },
-      ]);
-      setContent("");
+      setSubmitError("댓글 등록에 실패했습니다. 로그인 상태를 확인해 주세요.");
     }
   };
 
@@ -136,6 +126,10 @@ export default function CommentSection({
           등록
         </button>
       </form>
+
+      {submitError ? (
+        <p className="mt-2 text-sm font-bold text-[#c62917]">{submitError}</p>
+      ) : null}
 
       {comments.length > 0 ? (
         <ol className="mt-4 divide-y divide-[#eeeeee] rounded-md border border-[#eeeeee]">
